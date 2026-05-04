@@ -1,18 +1,29 @@
 ---
 name: backend-patterns
 description: Backend architecture patterns, API design, database optimization, and server-side best practices for Node.js, Express, and Next.js API routes.
+origin: ECC
 ---
 
 # Backend Development Patterns
 
 Backend architecture patterns and best practices for scalable server-side applications.
 
+## When to Activate
+
+- Designing REST or GraphQL API endpoints
+- Implementing repository, service, or controller layers
+- Optimizing database queries (N+1, indexing, connection pooling)
+- Adding caching (Redis, in-memory, HTTP cache headers)
+- Setting up background jobs or async processing
+- Structuring error handling and validation for APIs
+- Building middleware (auth, logging, rate limiting)
+
 ## API Design Patterns
 
 ### RESTful API Structure
 
 ```typescript
-// ✅ Resource-based URLs
+// PASS: Resource-based URLs
 GET    /api/markets                 # List resources
 GET    /api/markets/:id             # Get single resource
 POST   /api/markets                 # Create resource
@@ -20,7 +31,7 @@ PUT    /api/markets/:id             # Replace resource
 PATCH  /api/markets/:id             # Update resource
 DELETE /api/markets/:id             # Delete resource
 
-// ✅ Query parameters for filtering, sorting, pagination
+// PASS: Query parameters for filtering, sorting, pagination
 GET /api/markets?status=active&sort=volume&limit=20&offset=0
 ```
 
@@ -120,7 +131,7 @@ export default withAuth(async (req, res) => {
 ### Query Optimization
 
 ```typescript
-// ✅ GOOD: Select only needed columns
+// PASS: GOOD: Select only needed columns
 const { data } = await supabase
   .from('markets')
   .select('id, name, status, volume')
@@ -128,7 +139,7 @@ const { data } = await supabase
   .order('volume', { ascending: false })
   .limit(10)
 
-// ❌ BAD: Select everything
+// FAIL: BAD: Select everything
 const { data } = await supabase
   .from('markets')
   .select('*')
@@ -137,13 +148,13 @@ const { data } = await supabase
 ### N+1 Query Prevention
 
 ```typescript
-// ❌ BAD: N+1 query problem
+// FAIL: BAD: N+1 query problem
 const markets = await getMarkets()
 for (const market of markets) {
   market.creator = await getUser(market.creator_id)  // N queries
 }
 
-// ✅ GOOD: Batch fetch
+// PASS: GOOD: Batch fetch
 const markets = await getMarkets()
 const creatorIds = markets.map(m => m.creator_id)
 const creators = await getUsers(creatorIds)  // 1 query
@@ -395,21 +406,26 @@ export function hasPermission(user: User, permission: Permission): boolean {
 }
 
 export function requirePermission(permission: Permission) {
-  return async (request: Request) => {
-    const user = await requireAuth(request)
+  return (handler: (request: Request, user: User) => Promise<Response>) => {
+    return async (request: Request) => {
+      const user = await requireAuth(request)
 
-    if (!hasPermission(user, permission)) {
-      throw new ApiError(403, 'Insufficient permissions')
+      if (!hasPermission(user, permission)) {
+        throw new ApiError(403, 'Insufficient permissions')
+      }
+
+      return handler(request, user)
     }
-
-    return user
   }
 }
 
-// Usage
-export const DELETE = requirePermission('delete')(async (request: Request) => {
-  // Handler with permission check
-})
+// Usage - HOF wraps the handler
+export const DELETE = requirePermission('delete')(
+  async (request: Request, user: User) => {
+    // Handler receives authenticated user with verified permission
+    return new Response('Deleted', { status: 200 })
+  }
+)
 ```
 
 ## Rate Limiting

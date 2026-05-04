@@ -1,18 +1,29 @@
 ---
 name: frontend-patterns
 description: Frontend development patterns for React, Next.js, state management, performance optimization, and UI best practices.
+origin: ECC
 ---
 
 # Frontend Development Patterns
 
 Modern frontend patterns for React, Next.js, and performant user interfaces.
 
+## When to Activate
+
+- Building React components (composition, props, rendering)
+- Managing state (useState, useReducer, Zustand, Context)
+- Implementing data fetching (SWR, React Query, server components)
+- Optimizing performance (memoization, virtualization, code splitting)
+- Working with forms (validation, controlled inputs, Zod schemas)
+- Handling client-side routing and navigation
+- Building accessible, responsive UI patterns
+
 ## Component Patterns
 
 ### Composition Over Inheritance
 
 ```typescript
-// ✅ GOOD: Component composition
+// PASS: GOOD: Component composition
 interface CardProps {
   children: React.ReactNode
   variant?: 'default' | 'outlined'
@@ -283,17 +294,17 @@ export function useMarkets() {
 ### Memoization
 
 ```typescript
-// ✅ useMemo for expensive computations
+// PASS: useMemo for expensive computations
 const sortedMarkets = useMemo(() => {
   return markets.sort((a, b) => b.volume - a.volume)
 }, [markets])
 
-// ✅ useCallback for functions passed to children
+// PASS: useCallback for functions passed to children
 const handleSearch = useCallback((query: string) => {
   setSearchQuery(query)
 }, [])
 
-// ✅ React.memo for pure components
+// PASS: React.memo for pure components
 export const MarketCard = React.memo<MarketCardProps>(({ market }) => {
   return (
     <div className="market-card">
@@ -309,7 +320,7 @@ export const MarketCard = React.memo<MarketCardProps>(({ market }) => {
 ```typescript
 import { lazy, Suspense } from 'react'
 
-// ✅ Lazy load heavy components
+// PASS: Lazy load heavy components
 const HeavyChart = lazy(() => import('./HeavyChart'))
 const ThreeJsBackground = lazy(() => import('./ThreeJsBackground'))
 
@@ -504,7 +515,7 @@ export class ErrorBoundary extends React.Component<
 ```typescript
 import { motion, AnimatePresence } from 'framer-motion'
 
-// ✅ List animations
+// PASS: List animations
 export function AnimatedMarketList({ markets }: { markets: Market[] }) {
   return (
     <AnimatePresence>
@@ -523,7 +534,7 @@ export function AnimatedMarketList({ markets }: { markets: Market[] }) {
   )
 }
 
-// ✅ Modal animations
+// PASS: Modal animations
 export function Modal({ isOpen, onClose, children }: ModalProps) {
   return (
     <AnimatePresence>
